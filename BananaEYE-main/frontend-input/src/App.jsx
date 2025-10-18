@@ -6,62 +6,20 @@ function App() {
   const [infection, setInfection] = useState("");
   const [yieldPrediction, setYieldPrediction] = useState("");
   const [message, setMessage] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
 
-  // --- Run AI inference ---
-  const handleAnalyze = async () => {
-    if (!selectedFile) {
-      alert("Please select an image first!");
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-
-      const response = await fetch(
-        "http://localhost:9001/infer/workflows/banana-eye/custom-workflow",
-        {
-          method: "POST",
-          body: formData, // Local Inference Server accepts multipart file upload
-        }
-      );
-
-      const result = await response.json();
-      console.log("AI Result:", result);
-
-      // If any detection has class "black sigatoka"
-      const infected = result.predictions?.some(
-        (pred) => pred.class === "black sigatoka"
-      );
-
-      if (infected) {
-        setInfection("infected");
-      } else {
-        setInfection("healthy");
-      }
-    } catch (err) {
-      console.error("AI Error:", err);
-      setMessage("⚠️ Failed to analyze image: " + err.message);
-    }
-  };
-
-  // --- Save to backend ---
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      const response = await fetch(
-        `${API_BASE}/api/plantations/${plantationId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            blackSigatokaInfection: infection,
-            yieldPrediction,
-          }),
-        }
-      );
+      const response = await fetch(`${API_BASE}/api/plantations/${plantationId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          blackSigatokaInfection: infection,
+          yieldPrediction,
+        }),
+      });
 
       const data = await response.json();
 
@@ -98,27 +56,7 @@ function App() {
             />
           </div>
 
-          {/* Image Upload + Analyze */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-1">
-              Upload Banana Leaf Image
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setSelectedFile(e.target.files[0])}
-              className="w-full"
-            />
-            <button
-              type="button"
-              onClick={handleAnalyze}
-              className="mt-2 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-            >
-              Analyze Image
-            </button>
-          </div>
-
-          {/* Infection Field (auto filled by AI) */}
+          {/* Infection Status */}
           <div>
             <label className="block font-medium text-gray-700 mb-1">
               Black Sigatoka Infection
@@ -127,16 +65,16 @@ function App() {
               type="text"
               value={infection}
               onChange={(e) => setInfection(e.target.value.toLowerCase())}
-              placeholder="infected/healthy"
+              placeholder="infected / healthy"
               className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
               required
             />
           </div>
 
-          {/* Yield Manual Entry */}
+          {/* Yield Prediction */}
           <div>
             <label className="block font-medium text-gray-700 mb-1">
-              Yield Prediction (Manual)
+              Yield Prediction
             </label>
             <input
               type="text"
@@ -148,6 +86,7 @@ function App() {
             />
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"

@@ -1,9 +1,9 @@
-import React from 'react';
-import usePlantations from "../hooks/usePlantations";
-import { TreePalm, TreePineIcon } from 'lucide-react';
+import React from "react";
+import Database from "../hooks/Database";
+import { TreePalm } from "lucide-react";
 
 const PlantationGrid = ({ onTreeClick, selectedTree }) => {
-  const { plantations, loading } = usePlantations();
+  const { plantations, loading } = Database();
 
   if (loading) {
     return (
@@ -13,30 +13,55 @@ const PlantationGrid = ({ onTreeClick, selectedTree }) => {
     );
   }
 
-  
   const renderGrid = () => {
     const rows = [];
     let plantationIndex = 0;
 
     for (let row = 0; row < 5; row++) {
       const cols = [];
+
       for (let col = 0; col < 4; col++) {
-        const tree = plantations[plantationIndex]; 
+        const tree = plantations[plantationIndex];
         plantationIndex++;
 
         if (tree) {
+          // ✅ Match field from MongoDB
+          const isInfected = tree.blackSigatokaInfection === "infected";
+
           cols.push(
             <div
               key={tree.id}
-              className="flex flex-col items-center justify-center p-4 bg-green-50 rounded-lg border-2 border-green-200 hover:border-green-300 transition-all duration-200 cursor-pointer transform hover:scale-105"
               onClick={() => onTreeClick(tree)}
-              
+              className={`
+                relative flex flex-col items-center justify-center p-4 rounded-lg border-2 
+                transition-all duration-300 cursor-pointer transform hover:scale-105
+                ${isInfected
+                  ? "bg-red-100 border-red-300 hover:bg-red-500 hover:border-red-600"
+                  : "bg-green-100 border-green-300 hover:bg-green-500 hover:border-green-600"
+                }
+              `}
             >
+              
+              <span
+                className={`absolute top-2 right-2 w-3 h-3 rounded-full ${
+                  isInfected ? "bg-red-500" : "bg-green-500"
+                }`}
+              ></span>
+
               <TreePalm
                 size={60}
-                className="text-green-500 hover:text-green-700 transition-colors duration-200 mb-2"
+                className={`
+                  mb-2 transition-colors duration-300
+                  ${isInfected ? "text-red-600" : "text-green-600"}
+                  hover:text-white
+                `}
               />
-              <span className="text-sm font-bold text-green-800">
+              <span
+                className={`
+                  text-sm font-bold transition-colors duration-300
+                  ${isInfected ? "text-red-800 hover:text-white" : "text-green-800 hover:text-white"}
+                `}
+              >
                 {tree.name}
               </span>
             </div>
@@ -53,7 +78,6 @@ const PlantationGrid = ({ onTreeClick, selectedTree }) => {
         }
       }
 
-      // Responsive: stack differently based on screen size
       rows.push(
         <div
           key={row}
@@ -95,6 +119,7 @@ const PlantationGrid = ({ onTreeClick, selectedTree }) => {
           >
             Plantation Map
           </h2>
+          
           {renderGrid()}
         </div>
       </div>

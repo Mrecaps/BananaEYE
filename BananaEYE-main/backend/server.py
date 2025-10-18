@@ -24,7 +24,7 @@ class Position(BaseModel):
     col: int
 
 class DetectionRecord(BaseModel):
-    date: datetime = Field(default_factory=datetime.utcnow)
+    date: datetime
     status: str
     Yield: int
 
@@ -32,15 +32,17 @@ class Plantation(BaseModel):
     id: str
     name: str
     datePlanted: str
-    blackSigatokaInfection: str     
+    blackSigatokaInfection: str    
+    date: datetime
     yieldPrediction: int
     position: Position
     detectionHistory: List[DetectionRecord] = []
 
 class PlantationUpdate(BaseModel):
+    date: datetime = Field(default_factory=lambda: datetime.utcnow().strftime("%Y-%m-%d"))
     blackSigatokaInfection: Optional[str] = None
     yieldPrediction: Optional[int] = None
-    detectionRecord: Optional[DetectionRecord] = None  # allow adding history in updates
+    detectionRecord: Optional[DetectionRecord] = None 
 
 
 # ----------------- APP INIT -----------------
@@ -99,26 +101,29 @@ async def update_plantation(plantation_id: str, update: PlantationUpdate):
     if not plantation:
         raise HTTPException(status_code=404, detail="Plantation not found")
 
-    update_data = {}
+    # Always refresh the current date
+    current_date = datetime.utcnow()
+
+    update_data = {"date": current_date}  # ensure MongoDB updates this field
     if update.blackSigatokaInfection is not None:
         update_data["blackSigatokaInfection"] = update.blackSigatokaInfection
     if update.yieldPrediction is not None:
         update_data["yieldPrediction"] = update.yieldPrediction
 
-    if update_data:
-        # Save the OLD values into history (with explicit date)
-        old_record = DetectionRecord(
-            date=datetime.utcnow(),
-            status=plantation.get("blackSigatokaInfection", "Unknown"),
-            Yield=plantation.get("yieldPrediction", 0)
-        )
-        await db.plantations.update_one(
-            {"id": plantation_id},
-            {
-                "$set": update_data,
-                "$push": {"detectionHistory": old_record.dict()}
-            }
-        )
+    # Add previous record to detection history
+    old_record = DetectionRecord(
+        date=str(plantation.get("date", "")),
+        status=plantation.get("blackSigatokaInfection", "Unknown"),
+        Yield=plantation.get("yieldPrediction", 0)
+    )
+
+    await db.plantations.update_one(
+        {"id": plantation_id},
+        {
+            "$set": update_data,
+            "$push": {"detectionHistory": old_record.dict()}
+        }
+    )
 
     updated = await db.plantations.find_one({"id": plantation_id})
     updated["_id"] = str(updated["_id"])
