@@ -5,16 +5,37 @@ function App() {
   const [plantationId, setPlantationId] = useState("");
   const [infection, setInfection] = useState("");
   const [yieldPrediction, setYieldPrediction] = useState("");
+  const [image, setImage] = useState(null);
   const [message, setMessage] = useState("");
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    setImage(file);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch(`${API_BASE}/predict`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      setInfection(data.status); // auto-fill infection field
+      setMessage(`✅ Prediction: ${data.status}`);
+    } catch (err) {
+      console.error(err);
+      setMessage("⚠️ Failed to connect to AI server");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const response = await fetch(`${API_BASE}/api/plantations/${plantationId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           blackSigatokaInfection: infection,
           yieldPrediction,
@@ -22,7 +43,6 @@ function App() {
       });
 
       const data = await response.json();
-
       if (response.ok) {
         setMessage("✅ Data updated successfully!");
         console.log("Updated Plantation:", data);
@@ -56,6 +76,20 @@ function App() {
             />
           </div>
 
+          {/* Image Upload */}
+          <div>
+            <label className="block font-medium text-gray-700 mb-1">
+              Upload Leaf Image
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+              required
+            />
+          </div>
+
           {/* Infection Status */}
           <div>
             <label className="block font-medium text-gray-700 mb-1">
@@ -64,10 +98,8 @@ function App() {
             <input
               type="text"
               value={infection}
-              onChange={(e) => setInfection(e.target.value.toLowerCase())}
-              placeholder="infected / healthy"
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-              required
+              readOnly
+              className="w-full border rounded px-3 py-2 bg-gray-100 focus:outline-none"
             />
           </div>
 
