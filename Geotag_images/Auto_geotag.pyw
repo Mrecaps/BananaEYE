@@ -6,7 +6,7 @@ import traceback
 import piexif
 import shutil
 from PIL import Image
-from pandas.api.types import DatetimeTZDtype  # ✅ new import for deprecation fix
+from pandas.api.types import DatetimeTZDtype
 
 # === CONFIGURATION ===
 CSV_FOLDER = r"C:\Users\Recap\OneDrive\Documents\Banana_Project\LogsToCsv\CSV_Logs"
@@ -23,23 +23,20 @@ def log(message):
         f.write(f"[{timestamp}] {message}\n")
     print(message)
 
-log("🟢 Geotag service started successfully (piexif version).")
+log("🟢 Geotag service started successfully")
 
 # === HELPER FUNCTIONS ===
 def deg_to_dms_rational(deg):
-    """Convert decimal degrees to EXIF rational degrees/minutes/seconds."""
     d = int(abs(deg))
     m = int((abs(deg) - d) * 60)
     s = (abs(deg) - d - m / 60) * 3600
     return [(d, 1), (m, 1), (int(s * 100), 100)]
 
 def find_nearest_time(df, target_time):
-    """Finds the row with timestamp closest to target_time."""
     diffs = (df['timestamp'] - target_time).abs()
     return df.loc[diffs.idxmin()]
 
 def extract_datetime_from_exif(img_path):
-    """Read datetime from EXIF tag."""
     try:
         exif_dict = piexif.load(img_path)
         dt_bytes = exif_dict["0th"].get(piexif.ImageIFD.DateTime)
@@ -52,12 +49,37 @@ def extract_datetime_from_exif(img_path):
 
 # === INITIAL STATE ===
 seen = set()
+drive_present = None  
 
-# === MAIN LOOP ===
+# Wait loop / main loop
 while True:
     try:
+        if os.path.exists(IMAGE_FOLDER):
+            if drive_present is not True:
+                log(f"📂 Detected drive and folder: {IMAGE_FOLDER}")
+                drive_present = True
+        else:
+            if drive_present is not False:
+                log(f"⏳ Waiting for drive/folder to appear: {IMAGE_FOLDER}")
+                drive_present = False
+                # Clear seen set when drive is missing so files will be reprocessed after re-plug
+                seen.clear()
+            time.sleep(5)
+            continue
+
+        # Try to list files; if drive disconnects during os.listdir, handle it
+        try:
+            filenames = os.listdir(IMAGE_FOLDER)
+        except FileNotFoundError:
+            log(f"⚠️ Drive {IMAGE_FOLDER.split(':')[0]} disconnected. Waiting...")
+            drive_present = False
+            seen.clear()
+            time.sleep(5)
+            continue
+
+        # Scan folder
         log(f"🔍 Scanning {IMAGE_FOLDER} for new images...")
-        for filename in os.listdir(IMAGE_FOLDER):
+        for filename in filenames:
             if not filename.lower().endswith((".jpg", ".jpeg")) or filename in seen:
                 continue
 
@@ -69,11 +91,9 @@ while True:
                 if not img_time:
                     log(f"⚠️ No EXIF timestamp found in {filename}")
                     continue
-
-                # Adjust timezone (camera is local time, CSV is UTC)
+            
                 img_time_utc = img_time - datetime.timedelta(hours=8)
-
-                # Find best GPS match
+            
                 csv_files = [f for f in os.listdir(CSV_FOLDER) if f.endswith(".csv")]
                 if not csv_files:
                     log(f"⚠️ No CSV logs available for {filename}")
@@ -89,8 +109,7 @@ while True:
 
                         if {'CUSTOM.dateTime', 'OSD.latitude', 'OSD.longitude'}.issubset(df.columns):
                             df['timestamp'] = pd.to_datetime(df['CUSTOM.dateTime'], errors='coerce')
-
-                            # ✅ Fix deprecation + tz-naive issue
+                    
                             if isinstance(df['timestamp'].dtype, DatetimeTZDtype):
                                 df['timestamp'] = df['timestamp'].dt.tz_localize(None)
 
@@ -122,22 +141,29 @@ while True:
 
                     new_path = os.path.join(OUTPUT_FOLDER, filename)
 
-                    # ✅ Fix cross-drive move issue
                     try:
                         os.replace(img_path, new_path)
                     except OSError:
                         shutil.copy2(img_path, new_path)
-                        os.remove(img_path)
+                        try:
+                            os.remove(img_path)
+                        except Exception:
+                            log(f"⚠️ Could not remove original {img_path} after copying.")
 
                     log(f"✅ Geotagged {filename} using {best_match} (Δ {best_diff.total_seconds():.1f}s)")
                 else:
                     log(f"❌ No GPS match found for {filename}")
 
+            except FileNotFoundError:
+                log(f"⚠️ File {filename} disappeared during processing — drive likely unplugged.")
+                drive_present = False
+                seen.clear()
+                break
             except Exception:
                 log(f"⚠️ Error processing {filename}: {traceback.format_exc()}")
 
-        time.sleep(10)
+        time.sleep(5)
 
     except Exception:
         log(f"🚨 Fatal loop error: {traceback.format_exc()}")
-        time.sleep(30)
+        time.sleep(10)

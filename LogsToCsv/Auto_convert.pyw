@@ -4,6 +4,7 @@ import datetime
 import traceback
 import subprocess
 
+
 # === LOGGING FUNCTION ===
 def log(message):
     with open(r"C:\Users\Recap\OneDrive\Documents\Banana_Project\LogsToCsv\LogsToCsv.log", "a", encoding="utf-8") as f:
