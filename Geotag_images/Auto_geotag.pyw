@@ -5,6 +5,7 @@ import pandas as pd
 import traceback
 import piexif
 import shutil
+import math
 from PIL import Image
 from pandas.api.types import DatetimeTZDtype
 
@@ -14,16 +15,24 @@ IMAGE_FOLDER = r"D:\DCIM\102MEDIA"
 OUTPUT_FOLDER = r"C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Geotagged"
 LOG_FILE = r"C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\auto_geotag.log"
 
+# === DEFINE YOUR TREE COORDINATES (lat, lon, radius_m) ===
+BUBBLES = [
+    {"name": "BananaTree_1", "lat": 14.45748056, "lon": 121.0509611, "radius_m": 6},
+    {"name": "BananaTree_2", "lat": 14.45755, "lon": 121.0508222, "radius_m": 6},
+    {"name": "BananaTree_3", "lat": 14.457625, "lon": 121.0508833, "radius_m": 6},
+]
+
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 # === LOGGING ===
+open(LOG_FILE, "w").close()
 def log(message):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(f"[{timestamp}] {message}\n")
     print(message)
 
-log("🟢 Geotag service started successfully")
+log("🟢 Geotag + Tree-Sorting service started successfully.")
 
 # === HELPER FUNCTIONS ===
 def deg_to_dms_rational(deg):
@@ -47,39 +56,36 @@ def extract_datetime_from_exif(img_path):
     except Exception:
         return None
 
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371000
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2)**2
+    return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+def find_tree_for_image(lat, lon, bubbles):
+    for b in bubbles:
+        distance = haversine(lat, lon, b["lat"], b["lon"])
+        if distance <= b["radius_m"]:
+            return b["name"]
+    return None
+
 # === INITIAL STATE ===
 seen = set()
-drive_present = None  
 
-# Wait loop / main loop
+# === MAIN LOOP ===
 while True:
     try:
-        if os.path.exists(IMAGE_FOLDER):
-            if drive_present is not True:
-                log(f"📂 Detected drive and folder: {IMAGE_FOLDER}")
-                drive_present = True
-        else:
-            if drive_present is not False:
-                log(f"⏳ Waiting for drive/folder to appear: {IMAGE_FOLDER}")
-                drive_present = False
-                # Clear seen set when drive is missing so files will be reprocessed after re-plug
-                seen.clear()
-            time.sleep(5)
+        # ✅ Wait for drive D to be available
+        if not os.path.exists(IMAGE_FOLDER):
+            log(f"⚠️ Waiting for USB drive with path {IMAGE_FOLDER} to be available...")
+            time.sleep(10)
             continue
 
-        # Try to list files; if drive disconnects during os.listdir, handle it
-        try:
-            filenames = os.listdir(IMAGE_FOLDER)
-        except FileNotFoundError:
-            log(f"⚠️ Drive {IMAGE_FOLDER.split(':')[0]} disconnected. Waiting...")
-            drive_present = False
-            seen.clear()
-            time.sleep(5)
-            continue
-
-        # Scan folder
         log(f"🔍 Scanning {IMAGE_FOLDER} for new images...")
-        for filename in filenames:
+
+        for filename in os.listdir(IMAGE_FOLDER):
             if not filename.lower().endswith((".jpg", ".jpeg")) or filename in seen:
                 continue
 
@@ -91,9 +97,9 @@ while True:
                 if not img_time:
                     log(f"⚠️ No EXIF timestamp found in {filename}")
                     continue
-            
+
                 img_time_utc = img_time - datetime.timedelta(hours=8)
-            
+
                 csv_files = [f for f in os.listdir(CSV_FOLDER) if f.endswith(".csv")]
                 if not csv_files:
                     log(f"⚠️ No CSV logs available for {filename}")
@@ -109,7 +115,7 @@ while True:
 
                         if {'CUSTOM.dateTime', 'OSD.latitude', 'OSD.longitude'}.issubset(df.columns):
                             df['timestamp'] = pd.to_datetime(df['CUSTOM.dateTime'], errors='coerce')
-                    
+
                             if isinstance(df['timestamp'].dtype, DatetimeTZDtype):
                                 df['timestamp'] = df['timestamp'].dt.tz_localize(None)
 
@@ -145,25 +151,30 @@ while True:
                         os.replace(img_path, new_path)
                     except OSError:
                         shutil.copy2(img_path, new_path)
-                        try:
-                            os.remove(img_path)
-                        except Exception:
-                            log(f"⚠️ Could not remove original {img_path} after copying.")
+                        os.remove(img_path)
 
-                    log(f"✅ Geotagged {filename} using {best_match} (Δ {best_diff.total_seconds():.1f}s)")
+                    # 🧭 Tree classification
+                    tree_name = find_tree_for_image(best_lat, best_lon, BUBBLES)
+                    if tree_name:
+                        dest_folder = os.path.join(OUTPUT_FOLDER, tree_name)
+                    else:
+                        dest_folder = os.path.join(OUTPUT_FOLDER, "Unsorted")
+
+                    os.makedirs(dest_folder, exist_ok=True)
+                    final_path = os.path.join(dest_folder, filename)
+                    shutil.move(new_path, final_path)
+
+                    log(f"✅ Geotagged & sorted {filename} → {tree_name or 'Unsorted'} "
+                        f"(Δ {best_diff.total_seconds():.1f}s, {best_lat:.6f}, {best_lon:.6f})")
+
                 else:
                     log(f"❌ No GPS match found for {filename}")
 
-            except FileNotFoundError:
-                log(f"⚠️ File {filename} disappeared during processing — drive likely unplugged.")
-                drive_present = False
-                seen.clear()
-                break
             except Exception:
                 log(f"⚠️ Error processing {filename}: {traceback.format_exc()}")
 
-        time.sleep(5)
+        time.sleep(10)
 
     except Exception:
         log(f"🚨 Fatal loop error: {traceback.format_exc()}")
-        time.sleep(10)
+        time.sleep(30)

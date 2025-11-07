@@ -1,47 +1,33 @@
-[2025-11-06 16:21:39] 🟢 Geotag service started successfully (piexif version).
-[2025-11-06 16:21:39] 🔍 Scanning D:\DCIM\102MEDIA for new images...
-[2025-11-06 16:21:39] 🚨 Fatal loop error: Traceback (most recent call last):
-  File "C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Auto_geotag.pyw", line 61, in <module>
-    for filename in os.listdir(IMAGE_FOLDER):
-FileNotFoundError: [WinError 3] The system cannot find the path specified: 'D:\\DCIM\\102MEDIA'
-
-[2025-11-06 16:22:09] 🔍 Scanning D:\DCIM\102MEDIA for new images...
-[2025-11-06 16:22:09] 🚨 Fatal loop error: Traceback (most recent call last):
-  File "C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Auto_geotag.pyw", line 61, in <module>
-    for filename in os.listdir(IMAGE_FOLDER):
-FileNotFoundError: [WinError 3] The system cannot find the path specified: 'D:\\DCIM\\102MEDIA'
-
-[2025-11-06 16:22:39] 🔍 Scanning D:\DCIM\102MEDIA for new images...
-[2025-11-06 16:22:39] 🚨 Fatal loop error: Traceback (most recent call last):
-  File "C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Auto_geotag.pyw", line 61, in <module>
-    for filename in os.listdir(IMAGE_FOLDER):
-FileNotFoundError: [WinError 3] The system cannot find the path specified: 'D:\\DCIM\\102MEDIA'
-
-[2025-11-06 16:23:09] 🔍 Scanning D:\DCIM\102MEDIA for new images...
-[2025-11-06 16:23:09] 🚨 Fatal loop error: Traceback (most recent call last):
-  File "C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Auto_geotag.pyw", line 61, in <module>
-    for filename in os.listdir(IMAGE_FOLDER):
-FileNotFoundError: [WinError 3] The system cannot find the path specified: 'D:\\DCIM\\102MEDIA'
-
-[2025-11-06 16:23:39] 🔍 Scanning D:\DCIM\102MEDIA for new images...
-[2025-11-06 16:23:39] 🚨 Fatal loop error: Traceback (most recent call last):
-  File "C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Auto_geotag.pyw", line 61, in <module>
-    for filename in os.listdir(IMAGE_FOLDER):
-FileNotFoundError: [WinError 3] The system cannot find the path specified: 'D:\\DCIM\\102MEDIA'
-
-[2025-11-06 16:24:09] 🔍 Scanning D:\DCIM\102MEDIA for new images...
-[2025-11-06 16:24:09] 🚨 Fatal loop error: Traceback (most recent call last):
-  File "C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Auto_geotag.pyw", line 61, in <module>
-    for filename in os.listdir(IMAGE_FOLDER):
-FileNotFoundError: [WinError 3] The system cannot find the path specified: 'D:\\DCIM\\102MEDIA'
-
-[2025-11-06 16:24:39] 🔍 Scanning D:\DCIM\102MEDIA for new images...
-[2025-11-06 16:24:39] 🚨 Fatal loop error: Traceback (most recent call last):
-  File "C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Auto_geotag.pyw", line 61, in <module>
-    for filename in os.listdir(IMAGE_FOLDER):
-FileNotFoundError: [WinError 3] The system cannot find the path specified: 'D:\\DCIM\\102MEDIA'
-
-[2025-11-06 16:56:16] 🟢 Geotag service started successfully
-[2025-11-06 16:56:16] ⏳ Waiting for drive/folder to appear: D:\DCIM\102MEDIA
-[2025-11-06 16:59:47] 🟢 Geotag service started successfully
-[2025-11-06 16:59:47] ⏳ Waiting for drive/folder to appear: D:\DCIM\102MEDIA
+[2025-11-07 17:48:49] 🟢 Geotag + Tree-Sorting service started successfully.
+[2025-11-07 17:48:49] 🔍 Scanning D:\DCIM\102MEDIA for new images...
+[2025-11-07 17:48:49] ✅ Geotagged & sorted DJI_0044.JPG → Unsorted (Δ 0.1s, 14.457768, 121.050899)
+[2025-11-07 17:48:49] ✅ Geotagged & sorted DJI_0045.JPG → BananaTree_2 (Δ 0.0s, 14.457553, 121.050825)
+[2025-11-07 17:48:50] ✅ Geotagged & sorted DJI_0046.JPG → BananaTree_2 (Δ 0.4s, 14.457551, 121.050825)
+[2025-11-07 17:48:50] ✅ Geotagged & sorted DJI_0048.JPG → BananaTree_3 (Δ 0.1s, 14.457626, 121.050885)
+[2025-11-07 17:48:50] ✅ Geotagged & sorted DJI_0049.JPG → BananaTree_3 (Δ 0.0s, 14.457630, 121.050891)
+[2025-11-07 17:48:51] ✅ Geotagged & sorted DJI_0050.JPG → BananaTree_3 (Δ 0.5s, 14.457632, 121.050890)
+[2025-11-07 17:48:51] ✅ Geotagged & sorted DJI_0051.JPG → Unsorted (Δ 0.2s, 14.457673, 121.050671)
+[2025-11-07 17:48:51] ✅ Geotagged & sorted DJI_0052.JPG → Unsorted (Δ 0.0s, 14.457673, 121.050670)
+[2025-11-07 17:48:51] ✅ Geotagged & sorted DJI_0053.JPG → Unsorted (Δ 0.0s, 14.457522, 121.050611)
+[2025-11-07 17:48:52] ✅ Geotagged & sorted DJI_0054.JPG → Unsorted (Δ 0.3s, 14.457522, 121.050611)
+[2025-11-07 17:48:52] ✅ Geotagged & sorted DJI_0055.JPG → Unsorted (Δ 0.2s, 14.457465, 121.050899)
+[2025-11-07 17:48:52] ✅ Geotagged & sorted DJI_0056.JPG → Unsorted (Δ 0.1s, 14.457465, 121.050902)
+[2025-11-07 17:48:52] ✅ Geotagged & sorted DJI_0057.JPG → Unsorted (Δ 0.3s, 14.457471, 121.050904)
+[2025-11-07 17:48:53] ✅ Geotagged & sorted DJI_0058.JPG → BananaTree_1 (Δ 0.0s, 14.457474, 121.050907)
+[2025-11-07 17:48:53] ✅ Geotagged & sorted DJI_0059.JPG → BananaTree_1 (Δ 0.2s, 14.457481, 121.050963)
+[2025-11-07 17:48:53] ✅ Geotagged & sorted DJI_0060.JPG → BananaTree_1 (Δ 0.3s, 14.457481, 121.050963)
+[2025-11-07 17:48:53] ✅ Geotagged & sorted DJI_0061.JPG → Unsorted (Δ 0.1s, 14.457787, 121.050894)
+[2025-11-07 17:48:54] ✅ Geotagged & sorted DJI_0062.JPG → Unsorted (Δ 0.1s, 14.457786, 121.050892)
+[2025-11-07 17:48:54] ✅ Geotagged & sorted DJI_0063.JPG → Unsorted (Δ 0.3s, 14.457829, 121.050972)
+[2025-11-07 17:48:54] ✅ Geotagged & sorted DJI_0064.JPG → Unsorted (Δ 0.1s, 14.457829, 121.050972)
+[2025-11-07 17:48:54] ✅ Geotagged & sorted DJI_0065.JPG → BananaTree_3 (Δ 0.2s, 14.457597, 121.050919)
+[2025-11-07 17:48:54] ✅ Geotagged & sorted DJI_0066.JPG → BananaTree_3 (Δ 0.2s, 14.457595, 121.050922)
+[2025-11-07 17:48:55] ✅ Geotagged & sorted DJI_0067.JPG → BananaTree_3 (Δ 0.1s, 14.457595, 121.050921)
+[2025-11-07 17:49:05] 🔍 Scanning D:\DCIM\102MEDIA for new images...
+[2025-11-07 17:49:15] 🔍 Scanning D:\DCIM\102MEDIA for new images...
+[2025-11-07 17:49:15] ✅ Geotagged & sorted DJI_0068.JPG → BananaTree_3 (Δ 0.0s, 14.457573, 121.050889)
+[2025-11-07 17:49:15] ✅ Geotagged & sorted DJI_0069.JPG → BananaTree_3 (Δ 0.1s, 14.457573, 121.050891)
+[2025-11-07 17:49:16] ✅ Geotagged & sorted DJI_0070.JPG → Unsorted (Δ 0.2s, 14.457512, 121.050764)
+[2025-11-07 17:49:16] ✅ Geotagged & sorted DJI_0071.JPG → Unsorted (Δ 0.3s, 14.457512, 121.050764)
+[2025-11-07 17:49:26] 🔍 Scanning D:\DCIM\102MEDIA for new images...
+[2025-11-07 17:49:36] 🔍 Scanning D:\DCIM\102MEDIA for new images...

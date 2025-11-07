@@ -1,0 +1,109 @@
+======== DJI_0044.JPG
+File Name                       : DJI_0044.JPG
+GPS Latitude                    : 14 deg 27' 27.96" N
+GPS Longitude                   : 121 deg 3' 3.23" E
+======== DJI_0045.JPG
+File Name                       : DJI_0045.JPG
+GPS Latitude                    : 14 deg 27' 27.18" N
+GPS Longitude                   : 121 deg 3' 2.97" E
+======== DJI_0046.JPG
+File Name                       : DJI_0046.JPG
+GPS Latitude                    : 14 deg 27' 27.18" N
+GPS Longitude                   : 121 deg 3' 2.96" E
+======== DJI_0048.JPG
+File Name                       : DJI_0048.JPG
+GPS Latitude                    : 14 deg 27' 27.45" N
+GPS Longitude                   : 121 deg 3' 3.18" E
+======== DJI_0049.JPG
+File Name                       : DJI_0049.JPG
+GPS Latitude                    : 14 deg 27' 27.46" N
+GPS Longitude                   : 121 deg 3' 3.20" E
+======== DJI_0050.JPG
+File Name                       : DJI_0050.JPG
+GPS Latitude                    : 14 deg 27' 27.47" N
+GPS Longitude                   : 121 deg 3' 3.20" E
+======== DJI_0051.JPG
+File Name                       : DJI_0051.JPG
+GPS Latitude                    : 14 deg 27' 27.62" N
+GPS Longitude                   : 121 deg 3' 2.41" E
+======== DJI_0052.JPG
+File Name                       : DJI_0052.JPG
+GPS Latitude                    : 14 deg 27' 27.62" N
+GPS Longitude                   : 121 deg 3' 2.41" E
+======== DJI_0053.JPG
+File Name                       : DJI_0053.JPG
+GPS Latitude                    : 14 deg 27' 27.07" N
+GPS Longitude                   : 121 deg 3' 2.19" E
+======== DJI_0054.JPG
+File Name                       : DJI_0054.JPG
+GPS Latitude                    : 14 deg 27' 27.07" N
+GPS Longitude                   : 121 deg 3' 2.20" E
+======== DJI_0055.JPG
+File Name                       : DJI_0055.JPG
+GPS Latitude                    : 14 deg 27' 26.87" N
+GPS Longitude                   : 121 deg 3' 3.23" E
+======== DJI_0056.JPG
+File Name                       : DJI_0056.JPG
+GPS Latitude                    : 14 deg 27' 26.87" N
+GPS Longitude                   : 121 deg 3' 3.24" E
+======== DJI_0057.JPG
+File Name                       : DJI_0057.JPG
+GPS Latitude                    : 14 deg 27' 26.89" N
+GPS Longitude                   : 121 deg 3' 3.25" E
+======== DJI_0058.JPG
+File Name                       : DJI_0058.JPG
+GPS Latitude                    : 14 deg 27' 26.90" N
+GPS Longitude                   : 121 deg 3' 3.26" E
+======== DJI_0059.JPG
+File Name                       : DJI_0059.JPG
+GPS Latitude                    : 14 deg 27' 26.93" N
+GPS Longitude                   : 121 deg 3' 3.46" E
+======== DJI_0060.JPG
+File Name                       : DJI_0060.JPG
+GPS Latitude                    : 14 deg 27' 26.93" N
+GPS Longitude                   : 121 deg 3' 3.46" E
+======== DJI_0061.JPG
+File Name                       : DJI_0061.JPG
+GPS Latitude                    : 14 deg 27' 28.03" N
+GPS Longitude                   : 121 deg 3' 3.21" E
+======== DJI_0062.JPG
+File Name                       : DJI_0062.JPG
+GPS Latitude                    : 14 deg 27' 28.03" N
+GPS Longitude                   : 121 deg 3' 3.21" E
+======== DJI_0063.JPG
+File Name                       : DJI_0063.JPG
+GPS Latitude                    : 14 deg 27' 28.18" N
+GPS Longitude                   : 121 deg 3' 3.49" E
+======== DJI_0064.JPG
+File Name                       : DJI_0064.JPG
+GPS Latitude                    : 14 deg 27' 28.18" N
+GPS Longitude                   : 121 deg 3' 3.49" E
+======== DJI_0065.JPG
+File Name                       : DJI_0065.JPG
+GPS Latitude                    : 14 deg 27' 27.34" N
+GPS Longitude                   : 121 deg 3' 3.30" E
+======== DJI_0066.JPG
+File Name                       : DJI_0066.JPG
+GPS Latitude                    : 14 deg 27' 27.34" N
+GPS Longitude                   : 121 deg 3' 3.31" E
+======== DJI_0067.JPG
+File Name                       : DJI_0067.JPG
+GPS Latitude                    : 14 deg 27' 27.34" N
+GPS Longitude                   : 121 deg 3' 3.31" E
+======== DJI_0068.JPG
+File Name                       : DJI_0068.JPG
+GPS Latitude                    : 14 deg 27' 27.26" N
+GPS Longitude                   : 121 deg 3' 3.20" E
+======== DJI_0069.JPG
+File Name                       : DJI_0069.JPG
+GPS Latitude                    : 14 deg 27' 27.26" N
+GPS Longitude                   : 121 deg 3' 3.20" E
+======== DJI_0070.JPG
+File Name                       : DJI_0070.JPG
+GPS Latitude                    : 14 deg 27' 27.04" N
+GPS Longitude                   : 121 deg 3' 2.75" E
+======== DJI_0071.JPG
+File Name                       : DJI_0071.JPG
+GPS Latitude                    : 14 deg 27' 27.04" N
+GPS Longitude                   : 121 deg 3' 2.75" E
+   27 image files read
