@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE } from "../config";
 
 export default function usePlantations() {
   const [plantations, setPlantations] = useState([]);
@@ -7,7 +8,7 @@ export default function usePlantations() {
   useEffect(() => {
     async function fetchPlantations() {
       try {
-      const res = await fetch("http://192.168.8.109:8000/api/plantations"); //LAN
+          const res = await fetch(`${API_BASE}/api/plantations`); //LAN
        // const res = await fetch("http://127.0.0.1:8000/api/plantations"); //LOCALHOST 
         const data = await res.json();
         setPlantations(data);

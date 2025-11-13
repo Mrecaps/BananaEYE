@@ -5,25 +5,47 @@ function App() {
   const [plantationId, setPlantationId] = useState("");
   const [infection, setInfection] = useState("");
   const [yieldPrediction, setYieldPrediction] = useState("");
-  const [image, setImage] = useState(null);
   const [message, setMessage] = useState("");
 
   const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    setImage(file);
+    const files = e.target.files;
+    if (!files.length) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
+    // --- 🔍 Get the folder name (e.g. B1, B2, etc.)
+    const relativePath = files[0].webkitRelativePath || "";
+    const folderName = relativePath.split("/")[0]; // first folder in path, e.g. "B1"
 
+    if (!folderName) {
+      setMessage("⚠️ Could not detect folder name from uploaded files.");
+      return;
+    }
+
+    // Auto-fill Plantation ID (e.g., extract '1' from 'B1')
+    const folderMatch = folderName.match(/B(\d+)/i);
+    if (folderMatch) setPlantationId(folderMatch[1]);
+
+    // --- 🧠 Send folder name to backend
     try {
-      const response = await fetch(`${API_BASE}/predict`, {
+      const response = await fetch(`${API_BASE}/predict_folder`, {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folder_name: folderName }) // ✅ fixed key
       });
 
       const data = await response.json();
-      setInfection(data.status); // auto-fill infection field
-      setMessage(`✅ Prediction: ${data.status}`);
+      console.log("AI Response:", data);
+
+      if (!response.ok) {
+        setMessage(`⚠️ AI Error: ${data.detail || "Unknown error"}`);
+        return;
+      }
+
+      if (data.status) {
+        setInfection(data.status);
+        setMessage(`✅ Prediction for ${folderName}: ${data.status}`);
+      } else {
+        setMessage("⚠️ Unexpected AI response: " + JSON.stringify(data));
+      }
     } catch (err) {
       console.error(err);
       setMessage("⚠️ Failed to connect to AI server");
@@ -79,12 +101,14 @@ function App() {
           {/* Image Upload */}
           <div>
             <label className="block font-medium text-gray-700 mb-1">
-              Upload Leaf Image
+              Upload Leaf Image Folder
             </label>
             <input
               type="file"
-              accept="image/*"
               onChange={handleImageUpload}
+              webkitdirectory="true"
+              directory="true"
+              multiple
               className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
               required
             />

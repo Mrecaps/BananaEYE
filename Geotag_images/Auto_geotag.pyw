@@ -17,9 +17,9 @@ LOG_FILE = r"C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\auto
 
 # === DEFINE YOUR TREE COORDINATES (lat, lon, radius_m) ===
 BUBBLES = [
-    {"name": "BananaTree_1", "lat": 14.45748056, "lon": 121.0509611, "radius_m": 6},
-    {"name": "BananaTree_2", "lat": 14.45755, "lon": 121.0508222, "radius_m": 6},
-    {"name": "BananaTree_3", "lat": 14.457625, "lon": 121.0508833, "radius_m": 6},
+    {"name": "B1", "lat": 14.45748056, "lon": 121.0509611, "radius_m": 6},
+    {"name": "B2", "lat": 14.45755, "lon": 121.0508222, "radius_m": 6},
+    {"name": "B3", "lat": 14.457625, "lon": 121.0508833, "radius_m": 6},
 ]
 
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
@@ -30,7 +30,7 @@ def log(message):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(f"[{timestamp}] {message}\n")
-    print(message)
+   
 
 log("🟢 Geotag + Tree-Sorting service started successfully.")
 

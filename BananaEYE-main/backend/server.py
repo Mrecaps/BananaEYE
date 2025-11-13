@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, APIRouter, HTTPException
+from fastapi import FastAPI, File, UploadFile, APIRouter, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -11,6 +11,8 @@ import os
 import logging
 import uuid
 import uvicorn
+
+
 
 # ----------------- APP INIT -----------------
 app = FastAPI()
@@ -36,6 +38,9 @@ db = client[os.environ.get("DB_NAME", "bananaeye")]
 # ----------------- YOLO MODEL -----------------
 model_path = os.path.join(os.getcwd(), "best.pt")
 model = YOLO(model_path)
+print(model.names)  # shows class names mapping, e.g. {0: 'healthy', 1: 'infected'}
+
+
 
 # ----------------- PYDANTIC MODELS -----------------
 class Position(BaseModel):
@@ -67,8 +72,7 @@ class PlantationUpdate(BaseModel):
     detectionRecord: Optional[DetectionRecord] = None
 
 
-# ----------------- ROUTES -----------------
-# ✅ AI PREDICTION ROUTE
+# ----------------- ROUTES ----------------
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     try:
@@ -77,10 +81,8 @@ async def predict(file: UploadFile = File(...)):
         with open(file_path, "wb") as f:
             f.write(await file.read())
 
-        # Run YOLO prediction
         results = model(file_path)
 
-        # Extract detected class names
         labels = [results[0].names[int(c)] for c in results[0].boxes.cls]
 
         # Determine infection status
@@ -94,8 +96,55 @@ async def predict(file: UploadFile = File(...)):
     except Exception as e:
         return {"error": str(e)}
 
+# YOU STOP HERE SELF!!! /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-# ✅ PLANTATION ROUTES
+# 🔧 Base directory where all 20 folders (B1–B20) are located
+BASE_PLANTATION_DIR = Path(r"C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Geotagged")
+
+@app.post("/predict_folder")
+async def predict_folder(folder_name: str = Body(..., embed=True)):
+    """
+    Runs prediction on all images in a plantation folder (e.g. B1–B20).
+    Applies OR logic: if any leaf is infected → plantation is infected.
+    """
+    # Combine base dir + plantation folder
+    folder = BASE_PLANTATION_DIR / folder_name
+
+    if not folder.exists() or not folder.is_dir():
+        raise HTTPException(status_code=404, detail=f"Folder not found: {folder}")
+
+    # Gather all images (JPG, PNG)
+    image_files = list(folder.glob("*.jpg")) + list(folder.glob("*.png"))
+    if not image_files:
+        raise HTTPException(status_code=400, detail="No images found in folder")
+
+    results_summary = []
+    infected_flag = False
+
+    for img_file in image_files:
+        try:
+            results = model(str(img_file))
+            infected = any(r.boxes.cls[0] == 0 for r in results)
+            results_summary.append({
+                "image": img_file.name,
+                "status": "infected" if infected else "healthy"
+            })
+            if infected:
+                infected_flag = True
+        except Exception as e:
+            results_summary.append({"image": img_file.name, "error": str(e)})
+
+    final_status = "infected" if infected_flag else "healthy"
+
+    return {
+        "folder": folder.name,
+        "total_images": len(image_files),
+        "status": final_status,
+        "details": results_summary
+    }
+
+
+
 @app.post("/api/plantations")
 async def create_plantation(plantation: Plantation):
     plantation_dict = plantation.dict()

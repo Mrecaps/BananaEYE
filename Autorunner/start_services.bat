@@ -1,15 +1,12 @@
 @echo off
-title Banana Project Automation
 cd /d "C:\Users\Recap\OneDrive\Documents\Banana_Project"
 
-echo [STARTUP] Launching Log-to-CSV service...
-start "" python "C:\Users\Recap\OneDrive\Documents\Banana_Project\LogsToCsv\Auto_convert.pyw"
+:: Launch Log-to-CSV silently
+start "" "C:\Users\Recap\AppData\Local\Programs\Python\Python310\pythonw.exe" "C:\Users\Recap\OneDrive\Documents\Banana_Project\LogsToCsv\Auto_convert.pyw"
 
-echo Waiting 20 seconds before launching Geotagger...
-timeout /t 40 /nobreak >nul
+timeout /t 30 /nobreak >nul
 
-echo [STARTUP] Launching Geotag service...
-start "" python "C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Auto_geotag.pyw"
+:: Launch Geotagger silently
+start "" "C:\Users\Recap\AppData\Local\Programs\Python\Python310\pythonw.exe" "C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Auto_geotag.pyw"
 
-echo [DONE] Both services started successfully.
 exit

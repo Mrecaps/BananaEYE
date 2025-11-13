@@ -1,8 +1,4 @@
 @echo off
-:: ===========================================
-:: BananaEYE Toggle Script
-:: ===========================================
-
 :: --- Check if any Node or Python processes are running ---
 tasklist /FI "IMAGENAME eq node.exe" 2>NUL | find /I "node.exe" >NUL
 set NODE_RUNNING=%ERRORLEVEL%
