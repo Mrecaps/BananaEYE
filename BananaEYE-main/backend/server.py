@@ -96,16 +96,13 @@ async def predict(file: UploadFile = File(...)):
     except Exception as e:
         return {"error": str(e)}
 
-# YOU STOP HERE SELF!!! /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-# 🔧 Base directory where all 20 folders (B1–B20) are located
 BASE_PLANTATION_DIR = Path(r"C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Geotagged")
-
 @app.post("/predict_folder")
 async def predict_folder(folder_name: str = Body(..., embed=True)):
     """
     Runs prediction on all images in a plantation folder (e.g. B1–B20).
     Applies OR logic: if any leaf is infected → plantation is infected.
+    Updates MongoDB with the results using plantation ID extracted from folder name.
     """
     # Combine base dir + plantation folder
     folder = BASE_PLANTATION_DIR / folder_name
@@ -136,13 +133,73 @@ async def predict_folder(folder_name: str = Body(..., embed=True)):
 
     final_status = "infected" if infected_flag else "healthy"
 
+    # ✅ EXTRACT PLANTATION ID FROM FOLDER NAME AND UPDATE MONGODB
+    mongodb_updated = False
+    plantation_data = None
+    
+    try:
+        # Extract numeric ID from folder name (e.g., "B1" -> "1", "B15" -> "15")
+        plantation_id = folder_name[1:]  # Remove the 'B' prefix
+        
+        print(f"🔍 Looking for plantation with ID: {plantation_id}")
+        
+        # Find the plantation by ID (string, not integer)
+        plantation_data = await db.plantations.find_one({"id": plantation_id})
+        
+        if plantation_data:
+            current_date = datetime.utcnow()
+            
+            # Create detection record for history
+            detection_record = DetectionRecord(
+                date=current_date,
+                status=final_status,
+                Yield=plantation_data.get("yieldPrediction", 0)  # Keep existing yield
+            )
+            
+            # Update plantation with new status and add to history
+            update_result = await db.plantations.update_one(
+                {"id": plantation_id},
+                {
+                    "$set": {
+                        "blackSigatokaInfection": final_status,
+                        "date": current_date
+                    },
+                    "$push": {"detectionHistory": detection_record.dict()}
+                }
+            )
+            
+            if update_result.modified_count > 0:
+                print(f"✅ Updated MongoDB: Plantation {plantation_id} ({folder_name}) -> {final_status}")
+                mongodb_updated = True
+            else:
+                print(f"⚠️ No changes made to Plantation {plantation_id}")
+                
+        else:
+            print(f"❌ Plantation with ID '{plantation_id}' not found in database")
+            print(f"   Available plantations: {await get_available_plantation_ids()}")
+            
+    except Exception as e:
+        print(f"❌ Error updating MongoDB for {folder_name} (ID: {plantation_id}): {e}")
+
     return {
         "folder": folder.name,
+        "plantation_id": plantation_id,
+        "plantation_name": plantation_data.get("name", "Unknown") if plantation_data else "Unknown",
         "total_images": len(image_files),
         "status": final_status,
-        "details": results_summary
+        "details": results_summary,
+        "mongodb_updated": mongodb_updated,
+        "plantation_found": plantation_data is not None
     }
 
+# Helper function to see available plantation IDs
+async def get_available_plantation_ids():
+    """Get list of all plantation IDs in database for debugging"""
+    try:
+        plantations = await db.plantations.find({}, {"id": 1, "name": 1}).to_list(100)
+        return [f"{p.get('id')} ({p.get('name')})" for p in plantations]
+    except:
+        return "Error fetching plantations"
 
 
 @app.post("/api/plantations")
@@ -212,6 +269,13 @@ async def update_plantation(plantation_id: str, update: PlantationUpdate):
     updated = await db.plantations.find_one({"id": plantation_id})
     updated["_id"] = str(updated["_id"])
     return updated
+
+@app.delete("/api/plantations/{plantation_id}")
+async def delete_plantation(plantation_id: str):
+    result = await db.plantations.delete_one({"id": plantation_id})
+    if result.deleted_count == 1:
+        return {"message": f"Plantation {plantation_id} deleted successfully"}
+    raise HTTPException(status_code=404, detail="Plantation not found")
 
 
 # ----------------- STATUS CHECK ROUTER -----------------

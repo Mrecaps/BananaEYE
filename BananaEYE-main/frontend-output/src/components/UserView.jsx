@@ -1,6 +1,6 @@
 import React from "react";
 import Database from "../hooks/Database";
-import { AngryIcon, BluetoothConnected, ChevronRightCircle, RailSymbol, TreeDeciduous, TreePalm, TreePine, TreePineIcon, Trees } from "lucide-react";
+import { TreePalm } from "lucide-react";
 
 const PlantationGrid = ({ onTreeClick, selectedTree }) => {
   const { plantations, loading } = Database();

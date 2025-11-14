@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import PlantationGrid from './components/PlantationGrid';
+import UserView from './components/UserView';
 import TreeDetailModal from './components/TreeDetailModal';
 import Sidebar from './components/Sidebar';
 import { Toaster } from './components/ui/sonner';
@@ -61,7 +61,7 @@ const Home = () => {
         setColorScheme={setColorScheme}
       />
       
-      <PlantationGrid 
+      <UserView 
         onTreeClick={handleTreeClick}
         selectedTree={selectedTree}
       />
