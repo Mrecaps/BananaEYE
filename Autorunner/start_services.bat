@@ -9,4 +9,5 @@ timeout /t 30 /nobreak >nul
 :: Launch Geotagger silently
 start "" "C:\Users\Recap\AppData\Local\Programs\Python\Python310\pythonw.exe" "C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Auto_geotag.pyw"
 
+
 exit

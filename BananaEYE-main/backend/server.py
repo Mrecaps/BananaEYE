@@ -7,6 +7,9 @@ from ultralytics import YOLO
 from typing import List, Optional
 from datetime import datetime
 from pathlib import Path
+from passlib.context import CryptContext
+from bson import ObjectId
+from typing import Dict, Any
 import os
 import logging
 import uuid
@@ -35,14 +38,37 @@ mongo_url = os.environ.get("MONGO_URL")
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ.get("DB_NAME", "bananaeye")]
 
+#----------------- ADMIN ---------------------
+router_admin = APIRouter(prefix="/api/admin")
+pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
+plantation_collection = db["plantations"]
+status_collection = db["status"]
+admin_collection = db["admins"]
+
+
 # ----------------- YOLO MODEL -----------------
 model_path = os.path.join(os.getcwd(), "best.pt")
 model = YOLO(model_path)
-print(model.names)  # shows class names mapping, e.g. {0: 'healthy', 1: 'infected'}
+print(model.names)  # class names{0: 'healthy', 1: 'infected'}
 
 
 
 # ----------------- PYDANTIC MODELS -----------------
+class AdminLogin(BaseModel):
+    username: str
+    password: str
+
+
+class AdminCreate(BaseModel):
+    username: str
+    password: str
+
+def serialize_admin(admin):
+    return {
+        "id": str(admin["_id"]),
+        "username": admin["username"]
+    }
+
 class Position(BaseModel):
     row: int
     col: int
@@ -73,6 +99,105 @@ class PlantationUpdate(BaseModel):
 
 
 # ----------------- ROUTES ----------------
+@router_admin.post("/login")
+async def login_admin(data: AdminLogin):
+    admin = await admin_collection.find_one({"username": data.username})
+    if not admin:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    if not pwd_context.verify(data.password, admin["password"]):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    return {
+        "success": True,
+        "admin": {
+            "id": str(admin["_id"]),
+            "username": admin["username"]
+        }
+    }
+
+
+@router_admin.post("/create")
+async def create_admin(data: AdminCreate):
+    existing = await admin_collection.find_one({"username": data.username})
+    if existing:
+        raise HTTPException(status_code=400, detail="Username already exists")
+
+    hashed_pw = pwd_context.hash(data.password)
+
+    new_admin = {
+        "username": data.username,
+        "password": hashed_pw
+    }
+
+    result = await admin_collection.insert_one(new_admin)
+
+    return {
+        "success": True,
+        "admin": {
+            "id": str(result.inserted_id),
+            "username": data.username
+        }
+    }
+
+
+@router_admin.get("/")
+async def get_admins():
+    admins_cursor = admin_collection.find()
+    admins = []
+    async for a in admins_cursor:
+        admins.append({
+            "id": str(a["_id"]),
+            "username": a["username"]
+        })
+    return admins
+
+@router_admin.post("/plantations", response_model=Plantation)
+async def create_plantation_admin(plantation: Plantation):
+    """Create a new plantation (admin only)"""
+    # Check if ID already exists
+    existing = await plantation_collection.find_one({"id": plantation.id})
+    if existing:
+        raise HTTPException(status_code=400, detail="Plantation ID already exists")
+    
+    plantation_dict = plantation.dict()
+    if "detectionHistory" not in plantation_dict:
+        plantation_dict["detectionHistory"] = []
+    
+    result = await plantation_collection.insert_one(plantation_dict)
+    plantation_dict["_id"] = str(result.inserted_id)
+    return plantation_dict
+
+@router_admin.delete("/plantations/{plantation_id}")
+async def delete_plantation_admin(plantation_id: str):
+    """Delete a plantation (admin only)"""
+    result = await plantation_collection.delete_one({"id": plantation_id})
+    if result.deleted_count == 1:
+        return {"success": True, "message": f"Plantation {plantation_id} deleted"}
+    raise HTTPException(status_code=404, detail="Plantation not found")
+
+@router_admin.put("/plantations/{plantation_id}")
+async def update_plantation_admin(plantation_id: str, update_data: Dict[str, Any]):
+    """Update plantation data (admin only)"""
+    # Remove None values
+    update_data = {k: v for k, v in update_data.items() if v is not None}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data provided for update")
+    
+    result = await plantation_collection.update_one(
+        {"id": plantation_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 1:
+        updated = await plantation_collection.find_one({"id": plantation_id})
+        updated["_id"] = str(updated["_id"])
+        return {"success": True, "plantation": updated}
+    raise HTTPException(status_code=404, detail="Plantation not found")
+
+
+
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     try:
@@ -86,7 +211,7 @@ async def predict(file: UploadFile = File(...)):
         labels = [results[0].names[int(c)] for c in results[0].boxes.cls]
 
         # Determine infection status
-        infection_status = "infected" if "black_sigatoka" in labels else "healthy"
+        infection_status = "infected" if "infected" in labels else "healthy"
 
         # Clean up
         os.remove(file_path)
@@ -312,6 +437,7 @@ async def get_status_checks():
 
 
 app.include_router(api_router)
+app.include_router(router_admin)
 
 # ----------------- SHUTDOWN -----------------
 @app.on_event("shutdown")

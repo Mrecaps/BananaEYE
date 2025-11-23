@@ -9,17 +9,35 @@ import math
 from PIL import Image
 from pandas.api.types import DatetimeTZDtype
 
-# === CONFIGURATION ===
 CSV_FOLDER = r"C:\Users\Recap\OneDrive\Documents\Banana_Project\LogsToCsv\CSV_Logs"
 IMAGE_FOLDER = r"D:\DCIM\102MEDIA"
 OUTPUT_FOLDER = r"C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Geotagged"
 LOG_FILE = r"C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\auto_geotag.log"
 
-# === DEFINE YOUR TREE COORDINATES (lat, lon, radius_m) ===
 BUBBLES = [
-    {"name": "B1", "lat": 14.45748056, "lon": 121.0509611, "radius_m": 6},
-    {"name": "B2", "lat": 14.45755, "lon": 121.0508222, "radius_m": 6},
-    {"name": "B3", "lat": 14.457625, "lon": 121.0508833, "radius_m": 6},
+    {"name": "B1", "lat": 14.153555, "lon": 121.262457, "radius_m": 2},
+    {"name": "B2", "lat": 14.153550, "lon": 121.262419, "radius_m": 2},
+    {"name": "B3", "lat": 14.153545, "lon": 121.262378, "radius_m": 2},
+    {"name": "B4", "lat": 14.153571, "lon": 121.262358, "radius_m": 2},
+    {"name": "B5", "lat": 14.153591, "lon": 121.262399, "radius_m": 2},
+
+    {"name": "B6", "lat": 14.153607, "lon": 121.262382, "radius_m": 2},
+    {"name": "B7", "lat": 14.153642, "lon": 121.262391, "radius_m": 2},
+    {"name": "B8", "lat": 14.153627, "lon": 121.262436, "radius_m": 2},
+    {"name": "B9", "lat": 14.153641, "lon": 121.262457, "radius_m": 2},
+    {"name": "B10", "lat": 14.153670, "lon": 121.262459, "radius_m": 2},
+
+    {"name": "B11", "lat": 14.153697, "lon": 121.262457, "radius_m": 2},
+    {"name": "B12", "lat": 14.153681, "lon": 121.262390, "radius_m": 2},
+    {"name": "B13", "lat": 14.153722, "lon": 121.262441, "radius_m": 2},
+    {"name": "B14", "lat": 14.153776, "lon": 121.262452, "radius_m": 2},
+    {"name": "B15", "lat": 14.153804, "lon": 121.262428, "radius_m": 2},
+    
+    {"name": "B16", "lat": 14.153839, "lon": 121.262448, "radius_m": 2},
+    {"name": "B17", "lat": 14.153847, "lon": 121.262428, "radius_m": 2},
+    {"name": "B18", "lat": 14.153592, "lon": 121.262434, "radius_m": 2},
+    {"name": "B19", "lat": 14.153854, "lon": 121.262402, "radius_m": 2},
+    {"name": "B20", "lat": 14.153704, "lon": 121.262422, "radius_m": 2},
 ]
 
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
@@ -31,10 +49,9 @@ def log(message):
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(f"[{timestamp}] {message}\n")
    
-
 log("🟢 Geotag + Tree-Sorting service started successfully.")
 
-# === HELPER FUNCTIONS ===
+
 def deg_to_dms_rational(deg):
     d = int(abs(deg))
     m = int((abs(deg) - d) * 60)

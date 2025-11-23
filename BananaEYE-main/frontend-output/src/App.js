@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import UserView from './components/UserView';
 import TreeDetailModal from './components/TreeDetailModal';
 import Sidebar from './components/Sidebar';
 import { Toaster } from './components/ui/sonner';
+import PlantationPage from './components/PlantationPage';
 
 const Home = () => {
   const [selectedTree, setSelectedTree] = useState(null);
@@ -61,7 +61,7 @@ const Home = () => {
         setColorScheme={setColorScheme}
       />
       
-      <UserView 
+      <PlantationPage 
         onTreeClick={handleTreeClick}
         selectedTree={selectedTree}
       />
