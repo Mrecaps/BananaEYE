@@ -5,55 +5,54 @@ function App() {
   const [plantationId, setPlantationId] = useState("");
   const [infection, setInfection] = useState("");
   const [yieldPrediction, setYieldPrediction] = useState("");
+  const [files, setFiles] = useState([]);
   const [message, setMessage] = useState("");
 
-  const handleImageUpload = async (e) => {
-    const files = e.target.files;
-    if (!files.length) return;
 
-    // --- 🔍 Get the folder name (e.g. B1, B2, etc.)
-    const relativePath = files[0].webkitRelativePath || "";
-    const folderName = relativePath.split("/")[0]; // first folder in path, e.g. "B1"
+  const handleFileChange = async (e) => {
+    const uploadedFiles = [...e.target.files];
+    if (uploadedFiles.length === 0) return;
 
-    if (!folderName) {
-      setMessage("⚠️ Could not detect folder name from uploaded files.");
-      return;
-    }
+    setFiles(uploadedFiles);
+    setMessage("⏳ Running AI prediction...");
 
-    // Auto-fill Plantation ID (e.g., extract '1' from 'B1')
-    const folderMatch = folderName.match(/B(\d+)/i);
-    if (folderMatch) setPlantationId(folderMatch[1]);
-
-    // --- 🧠 Send folder name to backend
     try {
-      const response = await fetch(`${API_BASE}/predict_folder`, {
+      const formData = new FormData();
+      uploadedFiles.forEach((file) => formData.append("files", file)); 
+
+      const predictRes = await fetch(`${API_BASE}/predict`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ folder_name: folderName }) // ✅ fixed key
+        body: formData,
       });
 
-      const data = await response.json();
-      console.log("AI Response:", data);
+      const predictData = await predictRes.json();
+      console.log("Prediction Result:", predictData);
 
-      if (!response.ok) {
-        setMessage(`⚠️ AI Error: ${data.detail || "Unknown error"}`);
+      if (!predictRes.ok) {
+        setMessage("❌ Prediction error: " + JSON.stringify(predictData));
         return;
       }
 
-      if (data.status) {
-        setInfection(data.status);
-        setMessage(`✅ Prediction for ${folderName}: ${data.status}`);
+      // ⭐ Auto-fill infection using "overall_status"
+      if (predictData.overall_status) {
+        setInfection(predictData.overall_status);
+        setMessage(`✅ AI Prediction: ${predictData.overall_status}`);
       } else {
-        setMessage("⚠️ Unexpected AI response: " + JSON.stringify(data));
+        setMessage("⚠️ AI returned no prediction");
       }
     } catch (err) {
-      console.error(err);
-      setMessage("⚠️ Failed to connect to AI server");
+      setMessage("⚠️ Failed to run prediction: " + err.message);
     }
   };
 
+  // ===========================
+  // 🟩 Update Plantation Button
+  // ===========================
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    setMessage("⏳ Updating plantation...");
+
     try {
       const response = await fetch(`${API_BASE}/api/plantations/${plantationId}`, {
         method: "PUT",
@@ -65,14 +64,14 @@ function App() {
       });
 
       const data = await response.json();
+
       if (response.ok) {
-        setMessage("✅ Data updated successfully!");
-        console.log("Updated Plantation:", data);
+        setMessage("✅ Plantation updated successfully!");
       } else {
-        setMessage("❌ Error: " + (data.detail || "Unknown error"));
+        setMessage("❌ Update error: " + (data.detail || "Unknown"));
       }
     } catch (err) {
-      setMessage("⚠️ Failed to connect to API: " + err.message);
+      setMessage("⚠️ Failed to connect: " + err.message);
     }
   };
 
@@ -80,7 +79,7 @@ function App() {
     <div className="flex items-center justify-center min-h-screen bg-green-100">
       <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-md">
         <h1 className="text-2xl font-bold text-green-700 mb-4 text-center">
-          Banana Plantation Update
+          Banana Plantation Update + AI Diagnosis
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -90,10 +89,9 @@ function App() {
               Plantation ID
             </label>
             <input
-              type="text"
               value={plantationId}
               onChange={(e) => setPlantationId(e.target.value)}
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="w-full border rounded px-3 py-2"
               required
             />
           </div>
@@ -101,26 +99,27 @@ function App() {
           {/* Image Upload */}
           <div>
             <label className="block font-medium text-gray-700 mb-1">
-              Upload Leaf Image Folder
+              Upload Images for AI Prediction
             </label>
             <input
               type="file"
-              onChange={handleImageUpload}
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+              multiple
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full"
               required
             />
           </div>
 
-          {/* Infection Status */}
+          {/* Auto-filled infection */}
           <div>
             <label className="block font-medium text-gray-700 mb-1">
-              Black Sigatoka Infection
+              Black Sigatoka Infection (Auto-filled)
             </label>
             <input
-              type="text"
               value={infection}
-              readOnly
-              className="w-full border rounded px-3 py-2 bg-gray-100 focus:outline-none"
+              onChange={(e) => setInfection(e.target.value)}
+              className="w-full border rounded px-3 py-2"
             />
           </div>
 
@@ -130,16 +129,13 @@ function App() {
               Yield Prediction
             </label>
             <input
-              type="text"
               value={yieldPrediction}
               onChange={(e) => setYieldPrediction(e.target.value)}
-              placeholder="20"
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="w-full border rounded px-3 py-2"
               required
             />
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"

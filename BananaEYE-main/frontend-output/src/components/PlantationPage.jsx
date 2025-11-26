@@ -4,6 +4,7 @@ import AdminLoginModal from "./AdminLoginModal";
 import ManagePanel from "./ManagePanel";
 import EditTreeModal from "./EditTreeModal";
 import usePlantations from "../hooks/Database";
+import { Banana, BananaIcon, ShieldCheck, Sparkles } from "lucide-react";
 
 const PlantationPage = ({ onTreeClick, selectedTree }) => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -20,7 +21,7 @@ const PlantationPage = ({ onTreeClick, selectedTree }) => {
   const handleLogout = () => {
     localStorage.removeItem('admin');
     setIsAdmin(false);
-    alert("Logged out successfully!");
+   
   };
 
   const handleDelete = async (id) => {
@@ -41,7 +42,7 @@ const PlantationPage = ({ onTreeClick, selectedTree }) => {
   const handleEditSuccess = () => {
     setEditingTree(null);
     refetch();
-    alert("Plantation updated successfully!");
+  
   };
 
   const handleAddTree = () => {
@@ -66,9 +67,11 @@ const PlantationPage = ({ onTreeClick, selectedTree }) => {
       {!isAdmin && (
         <button
           onClick={() => setShowLogin(true)}
-          className="absolute top-4 right-6 px-4 py-2 bg-blue-600 text-white rounded-lg z-50 hover:bg-blue-700"
+          className="absolute top-4 right-6 px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg z-50 hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 flex items-center gap-2 font-medium group"
         >
-          Admin Login
+          <BananaIcon size={14} className="opacity-70 group-hover:opacity-100 transition-opacity" />
+          <span>Admin Login</span>
+          <ShieldCheck size={18} className="group-hover:rotate-12 transition-transform duration-300" />
         </button>
       )}
 
@@ -79,7 +82,7 @@ const PlantationPage = ({ onTreeClick, selectedTree }) => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onManage={() => setShowManage(true)}
-        onLogout={handleLogout} // Add this prop
+        onLogout={handleLogout}
       />
 
       {showLogin && (

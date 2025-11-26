@@ -94,7 +94,7 @@ seen = set()
 # === MAIN LOOP ===
 while True:
     try:
-        # ✅ Wait for drive D to be available
+        # Wait for drive D to be available
         if not os.path.exists(IMAGE_FOLDER):
             log(f"⚠️ Waiting for USB drive with path {IMAGE_FOLDER} to be available...")
             time.sleep(10)
@@ -170,7 +170,7 @@ while True:
                         shutil.copy2(img_path, new_path)
                         os.remove(img_path)
 
-                    # 🧭 Tree classification
+                    # Tree classification
                     tree_name = find_tree_for_image(best_lat, best_lon, BUBBLES)
                     if tree_name:
                         dest_folder = os.path.join(OUTPUT_FOLDER, tree_name)

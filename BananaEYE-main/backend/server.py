@@ -70,8 +70,8 @@ def serialize_admin(admin):
     }
 
 class Position(BaseModel):
-    row: int
-    col: int
+    lat: float
+    lon: float
 
 
 class DetectionRecord(BaseModel):
@@ -197,29 +197,66 @@ async def update_plantation_admin(plantation_id: str, update_data: Dict[str, Any
     raise HTTPException(status_code=404, detail="Plantation not found")
 
 
-
 @app.post("/predict")
-async def predict(file: UploadFile = File(...)):
-    try:
-        # Save uploaded image temporarily
+async def predict(files: List[UploadFile] = File(...)):
+    all_predictions = []
+
+    for file in files:
         file_path = f"temp_{file.filename}"
-        with open(file_path, "wb") as f:
-            f.write(await file.read())
+        try:
+            # save file temporarily
+            with open(file_path, "wb") as f:
+                f.write(await file.read())
 
-        results = model(file_path)
+            # run YOLO model
+            results = model(file_path)  # adapt if your call differs
 
-        labels = [results[0].names[int(c)] for c in results[0].boxes.cls]
+            cls_indices = []
+            try:
+                cls_indices = list(results[0].boxes.cls) 
+            except Exception:
+                cls_indices = []
 
-        # Determine infection status
-        infection_status = "infected" if "infected" in labels else "healthy"
+            labels = []
+            for c in cls_indices:
+                try:
+                    labels.append(results[0].names[int(c)])
+                except Exception:
+                    # fallback: append str(c) if mapping fails
+                    labels.append(str(c))
 
-        # Clean up
-        os.remove(file_path)
+            # Debugging: uncomment to log per-file labels
+            # print(f"DEBUG: {file.filename} labels = {labels}")
 
-        return {"status": infection_status}
+            # Determine infection: treat presence of 'black_sigatoka' as infected
+            is_infected = any("black_sigatoka" == lab or "black_sigatoka" in lab for lab in labels)
+            infection_status = "infected" if is_infected else "healthy"
 
-    except Exception as e:
-        return {"error": str(e)}
+            # Record result
+            all_predictions.append({
+                "filename": file.filename,
+                "result": infection_status,
+                "labels": labels  # optional: include labels for transparency
+            })
+
+        finally:
+            # ensure temp file removed if exists
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                except Exception:
+                    pass
+
+    # Majority (or presence) rule: infected if any file flagged infected
+    infected_count = sum(1 for p in all_predictions if p["result"] == "infected")
+    final_status = "infected" if infected_count > 0 else "healthy"
+
+    return {
+        "overall_status": final_status,
+        "infected_count": infected_count,
+        "predictions": all_predictions
+    }
+
 
 BASE_PLANTATION_DIR = Path(r"C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Geotagged")
 @app.post("/predict_folder")
