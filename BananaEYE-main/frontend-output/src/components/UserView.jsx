@@ -1,197 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { TreePalm, Edit, Trash2, LogOut, AlertTriangle, MapPin, X, Activity, CheckCircle, XCircle } from "lucide-react";
+import { TreePalm, Edit, Trash2, LogOut, AlertTriangle, MapPin, Activity, CheckCircle, XCircle } from "lucide-react";
 import usePlantations from '../hooks/Database'
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
-
-// Plantation coordinates
-const PLANTATION_COORDS = [
-  { name: "B1", lat: 14.153555, lon: 121.262457 },
-  { name: "B2", lat: 14.153550, lon: 121.262419 },
-  { name: "B3", lat: 14.153545, lon: 121.262378 },
-  { name: "B4", lat: 14.153571, lon: 121.262358 },
-  { name: "B5", lat: 14.153591, lon: 121.262399 },
-  { name: "B6", lat: 14.153607, lon: 121.262382 },
-  { name: "B7", lat: 14.153642, lon: 121.262391 },
-  { name: "B8", lat: 14.153627, lon: 121.262436 },
-  { name: "B9", lat: 14.153641, lon: 121.262457 },
-  { name: "B10", lat: 14.153670, lon: 121.262459 },
-  { name: "B11", lat: 14.153697, lon: 121.262457 },
-  { name: "B12", lat: 14.153681, lon: 121.262390 },
-  { name: "B13", lat: 14.153722, lon: 121.262441 },
-  { name: "B14", lat: 14.153776, lon: 121.262452 },
-  { name: "B15", lat: 14.153804, lon: 121.262428 },
-  { name: "B16", lat: 14.153839, lon: 121.262448 },
-  { name: "B17", lat: 14.153847, lon: 121.262428 },
-  { name: "B18", lat: 14.153592, lon: 121.262434 },
-  { name: "B19", lat: 14.153854, lon: 121.262402 },
-  { name: "B20", lat: 14.153704, lon: 121.262422 },
-];
-
-const MapModal = ({ isOpen, onClose }) => {
-  const mapRef = React.useRef(null);
-  const mapInstanceRef = React.useRef(null);
-  const layersRef = React.useRef({ street: null, satellite: null });
-  const [currentLayer, setCurrentLayer] = useState('street');
-
-  useEffect(() => {
-    if (!isOpen || mapInstanceRef.current) return;
-
-    // Load Leaflet CSS and JS
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';
-    document.head.appendChild(link);
-
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
-    script.onload = () => {
-      if (mapRef.current && window.L) {
-        // Initialize map
-        const map = window.L.map(mapRef.current).setView([14.15370, 121.26241], 19);
-        
-        // Create tile layers
-        const streetLayer = window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-          maxZoom: 20
-        });
-
-        const satelliteLayer = window.L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-          attribution: '© Google',
-          maxZoom: 20,
-          subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-        });
-
-        // Add default layer (street)
-        streetLayer.addTo(map);
-        
-        // Store layer references
-        layersRef.current = { street: streetLayer, satellite: satelliteLayer };
-
-        // Add markers
-        const bounds = [];
-        PLANTATION_COORDS.forEach(p => {
-          const marker = window.L.marker([p.lat, p.lon]).addTo(map);
-          marker.bindPopup(`<strong>Plantation ID: ${p.name}</strong>`);
-          bounds.push([p.lat, p.lon]);
-        });
-
-        // Fit map to show all markers with tighter zoom
-        if (bounds.length > 0) {
-          map.fitBounds(bounds, { padding: [30, 30], maxZoom: 19 });
-        }
-
-        mapInstanceRef.current = map;
-      }
-    };
-    document.body.appendChild(script);
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, [isOpen]);
-
-  // Handle layer switching
-  const switchLayer = (layerType) => {
-    if (!mapInstanceRef.current || !layersRef.current.street) return;
-
-    const map = mapInstanceRef.current;
-    const { street, satellite } = layersRef.current;
-
-    if (layerType === 'satellite') {
-      map.removeLayer(street);
-      satellite.addTo(map);
-      setCurrentLayer('satellite');
-    } else {
-      map.removeLayer(satellite);
-      street.addTo(map);
-      setCurrentLayer('street');
-    }
-  };
-
-  // Handle ESC key
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyPress = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyPress);
-    return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="bg-white rounded-2xl w-full max-w-4xl h-[600px] shadow-2xl overflow-hidden flex flex-col animate-in">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-2">
-              <MapPin size={24} className="text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-white">Plantation Map</h2>
-              <p className="text-green-50 text-sm">20 Geotagged Locations</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full transition-all"
-            title="Close"
-          >
-            <X size={24} className="text-white" />
-          </button>
-        </div>
-
-        {/* Map Container */}
-        <div className="flex-1 relative">
-          <div ref={mapRef} className="absolute inset-0 w-full h-full"></div>
-          
-          {/* Layer Toggle */}
-          <div className="absolute top-4 right-4 z-[1000] bg-white rounded-lg shadow-lg overflow-hidden">
-            <button
-              onClick={() => switchLayer('street')}
-              className={`px-4 py-2 text-sm font-medium transition-colors border-r border-gray-200 ${
-                currentLayer === 'street'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              Street
-            </button>
-            <button
-              onClick={() => switchLayer('satellite')}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                currentLayer === 'satellite'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              Satellite
-            </button>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
-          <p className="text-sm text-gray-600 text-center">
-            Click on markers to view Plantation IDs • Use mouse wheel to zoom
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
+import MapModal from "./MapModal";
+import { API_BASE } from "../config";
 
 const QuickStatsCard = ({ icon: Icon, label, value, subtext, bgColor, iconColor, textColor }) => (
   <div className={`${bgColor} rounded-lg sm:rounded-xl p-3 sm:p-5 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
@@ -208,7 +20,7 @@ const QuickStatsCard = ({ icon: Icon, label, value, subtext, bgColor, iconColor,
   </div>
 );
 
-const PlantationGrid = ({
+const UserView = ({
   onTreeClick = () => {},
   selectedTree = null,
   isAdmin = true,
@@ -217,7 +29,7 @@ const PlantationGrid = ({
   onManage = () => {},
   onLogout = () => {}
 }) => {
-  const { plantations, loading } = usePlantations();
+  const { plantations, loading, refetch } = usePlantations();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -337,17 +149,21 @@ const handleFilterChange = (newFilter) => {
   };
 
   const handleDeleteConfirm = async (treeId) => {
-    try {
-      await plantationAPI.delete(treeId);
-      setShowDeleteModal(false);
-      setSelectedTreeForDelete(null);
-      // The usePlantations hook should automatically refresh the data
-      // If not, you may need to call a refresh function here
-    } catch (error) {
-      console.error("Failed to delete plantation:", error);
-      // You might want to show an error message here
-    }
-  };
+  try {
+    await fetch(`${API_BASE}/api/plantations/${treeId}`, {
+      method: "DELETE",
+    });
+
+    setShowDeleteModal(false);
+    setSelectedTreeForDelete(null);
+
+    if (typeof refetch === "function") refetch();
+
+  } catch (error) {
+    console.error("Failed to delete plantation:", error);
+    throw error; 
+  }
+};
 
   if (loading) {
     return (
@@ -357,7 +173,6 @@ const handleFilterChange = (newFilter) => {
     );
   }
 
-  // Fixed 4-column grid with expandable rows
   const calculateGrid = () => {
     const baseCols = 4;
     const baseRows = 5;
@@ -694,4 +509,4 @@ const handleFilterChange = (newFilter) => {
   );
 };
 
-export default PlantationGrid;
+export default UserView;

@@ -10,9 +10,9 @@ from PIL import Image
 from pandas.api.types import DatetimeTZDtype
 
 CSV_FOLDER = r"C:\Users\Recap\OneDrive\Documents\Banana_Project\LogsToCsv\CSV_Logs"
-IMAGE_FOLDER = r"D:\DCIM\102MEDIA"
+IMAGE_FOLDER = r"C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\PlaceholderUSB" #for testing, change to D:\DCIM\102MEDIA for actual use
 OUTPUT_FOLDER = r"C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\Geotagged"
-LOG_FILE = r"C:\Users\Recap\OneDrive\Documents\Banana_Project\Geotag_images\auto_geotag.log"
+LOG_FILE = r"C:\Users\Recap\OneDrive\Documents\Banana_Project\#Console_Logs\Geotag.log"
 
 BUBBLES = [
     {"name": "B1", "lat": 14.153555, "lon": 121.262457, "radius_m": 2},

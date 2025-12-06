@@ -4,14 +4,14 @@ import AdminLoginModal from "./AdminLoginModal";
 import ManagePanel from "./ManagePanel";
 import EditTreeModal from "./EditTreeModal";
 import usePlantations from "../hooks/Database";
-import { Banana, BananaIcon, ShieldCheck, Sparkles } from "lucide-react";
+import { BananaIcon, ShieldCheck, Sparkles } from "lucide-react";
 
 const PlantationPage = ({ onTreeClick, selectedTree }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showManage, setShowManage] = useState(false);
   const [editingTree, setEditingTree] = useState(null);
-  const { plantations, refetch, deletePlantation } = usePlantations();
+  const { refetch, deletePlantation } = usePlantations();
 
   const handleLoginSuccess = () => {
     setIsAdmin(true);

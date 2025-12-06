@@ -10,7 +10,7 @@ const DeleteConfirmationModal = ({ tree, isOpen, onClose, onConfirm }) => {
   const sliderRef = useRef(null);
   const sliderContainerRef = useRef(null);
 
-  const SLIDER_THRESHOLD = 0.85; // 85% to complete
+  const SLIDER_THRESHOLD = 0.85;
 
   useEffect(() => {
     if (isOpen) {
@@ -73,10 +73,6 @@ const DeleteConfirmationModal = ({ tree, isOpen, onClose, onConfirm }) => {
 
     setSliderPosition(newPosition);
 
-    // Check if threshold is reached
-    if (newPosition / maxPosition >= SLIDER_THRESHOLD) {
-      handleDelete();
-    }
   };
 
   const handleTouchMove = (e) => {
@@ -94,38 +90,41 @@ const DeleteConfirmationModal = ({ tree, isOpen, onClose, onConfirm }) => {
     setSliderPosition(newPosition);
 
     // Check if threshold is reached
-    if (newPosition / maxPosition >= SLIDER_THRESHOLD) {
-      handleDelete();
-    }
+    
   };
 
   const handleMouseUp = () => {
-    if (isDragging) {
+    if (!isDragging) return;
+    setIsDragging(false);
+
+    const containerWidth = sliderContainerRef.current.offsetWidth;
+    const sliderWidth = sliderRef.current.offsetWidth;
+    const maxPosition = containerWidth - sliderWidth;
+
+  // ✔️ Trigger delete AFTER releasing
+    if (sliderPosition / maxPosition >= SLIDER_THRESHOLD) {
+      handleDelete();
+    } else {
+      setSliderPosition(0);
+    }
+    };
+    
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
       setIsDragging(false);
-      // Snap back if not completed
-      const containerWidth = sliderContainerRef.current.offsetWidth;
-      const sliderWidth = sliderRef.current.offsetWidth;
-      const maxPosition = containerWidth - sliderWidth;
-      
-      if (sliderPosition / maxPosition < SLIDER_THRESHOLD) {
-        setSliderPosition(0);
-      }
+
+    const containerWidth = sliderContainerRef.current.offsetWidth;
+    const sliderWidth = sliderRef.current.offsetWidth;
+    const maxPosition = containerWidth - sliderWidth;
+
+  // ✔️ Trigger delete AFTER releasing
+    if (sliderPosition / maxPosition >= SLIDER_THRESHOLD) {
+      handleDelete();
+    } else {
+      setSliderPosition(0);
     }
   };
 
-  const handleTouchEnd = () => {
-    if (isDragging) {
-      setIsDragging(false);
-      // Snap back if not completed
-      const containerWidth = sliderContainerRef.current.offsetWidth;
-      const sliderWidth = sliderRef.current.offsetWidth;
-      const maxPosition = containerWidth - sliderWidth;
-      
-      if (sliderPosition / maxPosition < SLIDER_THRESHOLD) {
-        setSliderPosition(0);
-      }
-    }
-  };
 
   useEffect(() => {
     if (isDragging) {

@@ -4,17 +4,13 @@ import { AlertTriangle, MapPin, Calendar, Activity } from "lucide-react";
 
 const EditTreeModal = ({ tree, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
-    datePlanted: "",
-    blackSigatokaInfection: "healthy",
-    position: { lat: 0, lon: 0 }
+    blackSigatokaInfection: "healthy"
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [existingPlantations, setExistingPlantations] = useState([]);
   const [showInfectionWarning, setShowInfectionWarning] = useState(false);
   const [pendingInfectionStatus, setPendingInfectionStatus] = useState("");
   const [originalInfectionStatus, setOriginalInfectionStatus] = useState("");
-  const [originalDatePlanted, setOriginalDatePlanted] = useState("");
 
   const modalRef = useRef();
   const infectionWarningRef = useRef();
@@ -50,85 +46,32 @@ const EditTreeModal = ({ tree, onClose, onSuccess }) => {
         } else {
           onClose();
         }
-      } else if (e.key === 'Enter' && !showInfectionWarning) {
-        const form = e.target.form;
-        if (form && !loading && !isPositionOccupied(formData.position.lat, formData.position.lon)) {
-          handleSubmit(e);
-        }
+      } else if (e.key === 'Enter' && !showInfectionWarning && !loading) {
+        handleSubmit();
       }
     };
 
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [showInfectionWarning, loading, formData, onClose]);
-
-  // Fetch existing plantations to check for position conflicts
-  useEffect(() => {
-    const fetchPlantations = async () => {
-      try {
-        const data = await plantationAPI.getAll();
-        setExistingPlantations(data.filter(p => p.id !== tree.id));
-      } catch (err) {
-        console.error("Failed to fetch plantations:", err);
-      }
-    };
-    fetchPlantations();
-  }, [tree.id]);
+  }, [showInfectionWarning, loading, onClose]);
 
   // Initialize form data
   useEffect(() => {
     if (tree) {
       setFormData({
-        datePlanted: tree.datePlanted || "",
-        blackSigatokaInfection: tree.blackSigatokaInfection || "healthy",
-        position: tree.position || { lat: 0, lon: 0 }
+        blackSigatokaInfection: tree.blackSigatokaInfection || "healthy"
       });
       setOriginalInfectionStatus(tree.blackSigatokaInfection || "healthy");
-      setOriginalDatePlanted(tree.datePlanted || "");
     }
   }, [tree]);
 
-  // Check if coordinates are already occupied
-  const isPositionOccupied = (lat, lon) => {
-    return existingPlantations.some(plantation => 
-      plantation.position?.lat === lat && plantation.position?.lon === lon
-    );
-  };
-
-  const handleSubmit = async (e) => {
-    if (e) e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
     setError("");
 
-    // Validate date
-    if (!formData.datePlanted) {
-      setError("Date planted is required");
-      setLoading(false);
-      return;
-    }
-
-    // Validate coordinates
-    if (!formData.position.lat || !formData.position.lon) {
-      setError("Valid coordinates are required");
-      setLoading(false);
-      return;
-    }
-
-    // Check if position is occupied
-    if (isPositionOccupied(formData.position.lat, formData.position.lon)) {
-      setError(`Coordinates (${formData.position.lat}, ${formData.position.lon}) are already occupied.`);
-      setLoading(false);
-      return;
-    }
-
     try {
       const updateData = {
-        datePlanted: formData.datePlanted,
-        blackSigatokaInfection: formData.blackSigatokaInfection,
-        position: {
-          lat: parseFloat(formData.position.lat),
-          lon: parseFloat(formData.position.lon)
-        }
+        blackSigatokaInfection: formData.blackSigatokaInfection
       };
 
       await plantationAPI.update(tree.id, updateData);
@@ -137,24 +80,6 @@ const EditTreeModal = ({ tree, onClose, onSuccess }) => {
       setError(err.message || "Failed to update plantation");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleChange = (field, value) => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: value
-        }
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
     }
   };
 
@@ -182,10 +107,6 @@ const EditTreeModal = ({ tree, onClose, onSuccess }) => {
   const handleInfectionCancel = () => {
     setShowInfectionWarning(false);
     setPendingInfectionStatus("");
-  };
-
-  const getTodayDate = () => {
-    return new Date().toISOString().split('T')[0];
   };
 
   const formatDateForDisplay = (dateString) => {
@@ -269,7 +190,7 @@ const EditTreeModal = ({ tree, onClose, onSuccess }) => {
           {/* Header */}
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6">
             <h2 className="text-2xl font-bold text-white text-center">Edit Plantation {tree.name}</h2>
-            <p className="text-green-50 text-center text-sm mt-1">Update plantation information</p>
+            <p className="text-green-50 text-center text-sm mt-1">Update infection status</p>
           </div>
 
           {/* Content */}
@@ -281,7 +202,7 @@ const EditTreeModal = ({ tree, onClose, onSuccess }) => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-6">
               {/* Current Information Card */}
               <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200">
                 <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -305,7 +226,7 @@ const EditTreeModal = ({ tree, onClose, onSuccess }) => {
                   </div>
                   <div className="bg-white p-3 rounded-lg shadow-sm">
                     <div className="text-xs text-gray-500 mb-1">Date Planted</div>
-                    <div className="font-semibold text-gray-800 text-xs">{formatDateForDisplay(originalDatePlanted)}</div>
+                    <div className="font-semibold text-gray-800 text-xs">{formatDateForDisplay(tree.datePlanted)}</div>
                   </div>
                   <div className="bg-white p-3 rounded-lg shadow-sm col-span-2">
                     <div className="text-xs text-gray-500 mb-1">Coordinates</div>
@@ -314,76 +235,6 @@ const EditTreeModal = ({ tree, onClose, onSuccess }) => {
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Date Planted */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <Calendar size={16} className="text-green-600" />
-                  Date Planted *
-                  {formData.datePlanted !== originalDatePlanted && (
-                    <span className="ml-auto text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Modified</span>
-                  )}
-                </label>
-                <input
-                  type="date"
-                  required
-                  className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                  value={formData.datePlanted}
-                  onChange={(e) => handleChange('datePlanted', e.target.value)}
-                  max={getTodayDate()}
-                />
-              </div>
-
-              {/* Coordinates */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <MapPin size={16} className="text-blue-600" />
-                  GPS Coordinates *
-                  {(formData.position.lat !== tree.position?.lat || formData.position.lon !== tree.position?.lon) && (
-                    <span className="ml-auto text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Modified</span>
-                  )}
-                </label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Latitude</label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      required
-                      className={`w-full p-3 border-2 rounded-lg font-mono text-sm transition-all ${
-                        isPositionOccupied(formData.position.lat, formData.position.lon)
-                          ? 'border-orange-400 bg-orange-50 focus:border-orange-500 focus:ring-orange-200'
-                          : 'border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
-                      }`}
-                      value={formData.position.lat}
-                      onChange={(e) => handleChange('position.lat', e.target.value)}
-                      placeholder="14.153555"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Longitude</label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      required
-                      className={`w-full p-3 border-2 rounded-lg font-mono text-sm transition-all ${
-                        isPositionOccupied(formData.position.lat, formData.position.lon)
-                          ? 'border-orange-400 bg-orange-50 focus:border-orange-500 focus:ring-orange-200'
-                          : 'border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
-                      }`}
-                      value={formData.position.lon}
-                      onChange={(e) => handleChange('position.lon', e.target.value)}
-                      placeholder="121.262457"
-                    />
-                  </div>
-                </div>
-                {isPositionOccupied(formData.position.lat, formData.position.lon) && (
-                  <div className="mt-2 bg-orange-50 border-l-4 border-orange-400 text-orange-700 px-3 py-2 rounded text-sm flex items-start gap-2">
-                    <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
-                    <span>These coordinates are already occupied by another plantation</span>
-                  </div>
-                )}
               </div>
 
               {/* Infection Status - Radio Buttons */}
@@ -459,14 +310,15 @@ const EditTreeModal = ({ tree, onClose, onSuccess }) => {
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={handleSubmit}
                   className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:from-gray-300 disabled:to-gray-400 font-medium transition-all shadow-lg hover:shadow-xl transform active:scale-95 disabled:transform-none"
-                  disabled={loading || isPositionOccupied(formData.position.lat, formData.position.lon)}
+                  disabled={loading}
                 >
                   {loading ? "Updating..." : "Save Changes"}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
